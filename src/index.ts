@@ -15,9 +15,10 @@ export default {
       return new Response(null, { headers, status: 204 });
     }
 
-    console.log(request.method, new URL(request.url).pathname, request.headers.get("content-type"));
-
     try {
+      if (new URL(request.url).pathname !== "/") {
+        return new Response(null, { status: 404 });
+      }
       if (request.method === "GET") {
         return new Response(
           JSON.stringify({
