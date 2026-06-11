@@ -1,0 +1,14 @@
+{
+  "name": "my-sirst-mcp",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.1"
+  },
+  "devDependencies": {
+    "wrangler": "^3.109.0"
+  }
+}
