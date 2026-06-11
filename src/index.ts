@@ -65,20 +65,28 @@ export default {
               result: {
                 tools: [
                   {
-                    name: "get_mechanical_guideline",
-                    description: "브랜드 컨셉 키워드(sharp, soft 등)에 맞는 가공(Fillet/Chamfer) 수치 가이드라인을 조회합니다.",
+                    name: "get_fillet_r",
+                    description: "감성 키워드를 Fillet R값(mm)으로 변환합니다.",
                     inputSchema: {
                       type: "object",
                       properties: {
-                        keyword: {
-                          type: "string",
-                          description: "조회할 디자인 키워드 (sharp, soft, matte, fillet, chamfer)"
-                        }
+                        keyword: { type: "string", description: "감성 형용사 (예: '부드러운', '단단한')" }
+                      },
+                      required: ["keyword"]
+                    }
+                  },
+                  {
+                    name: "get_chamfer_c",
+                    description: "감성 키워드를 Chamfer C값(mm)으로 변환합니다.",
+                    inputSchema: {
+                      type: "object",
+                      properties: {
+                        keyword: { type: "string", description: "감성 형용사 (예: '예리한', '강인한')" }
                       },
                       required: ["keyword"]
                     }
                   }
-                ]
+                ]                
               }
             }),
             { headers, status: 200 }
@@ -86,45 +94,34 @@ export default {
         }
 
         // [Case C] AI가 데이터를 실제로 요청하여 조회할 때
-        if (body.method === "tools/call") {
-          const { keyword } = body.params?.arguments || {};
-          const lowerKeyword = keyword ? keyword.toLowerCase().trim() : "";
-          const matchedData = keywords[lowerKeyword as keyof typeof keywords];
+if (body.method === "tools/call") {
+  const { name, arguments: args } = body.params;
+  const keyword = args?.keyword?.trim();
 
-          let responseText = "";
-          if (matchedData) {
-            responseText = `[${matchedData.description}]\n${matchedData.content}`;
-          } else {
-            responseText = `'${keyword}' 콘셉트에 맞는 디자인 수치가 아직 정의되지 않았습니다. 현재 등록된 키워드: ${Object.keys(keywords).join(", ")}`;
-          }
+  const table = name === "get_fillet_r"
+    ? keywords.fillet
+    : name === "get_chamfer_c"
+    ? keywords.chamfer
+    : null;
 
-          return new Response(
-            JSON.stringify({
-              jsonrpc: "2.0",
-              id: body.id,
-              result: {
-                content: [{ type: "text", text: responseText }],
-                isError: false
-              }
-            }),
-            { headers, status: 200 }
-          );
-        }
-
-        // 기타 예외적인 JSON-RPC 요청이 들어올 때 유연한 에러 회피용 기본 응답
-        return new Response(
-          JSON.stringify({ jsonrpc: "2.0", id: body.id, result: {} }),
-          { headers, status: 200 }
-        );
-      }
-
-      return new Response(JSON.stringify({ error: "Method Not Allowed" }), { headers, status: 405 });
-
-    } catch (error: any) {
-      return new Response(
-        JSON.stringify({ jsonrpc: "2.0", error: { code: -32603, message: error.message } }),
-        { headers, status: 500 }
-      );
-    }
+  if (!table) {
+    return new Response(
+      JSON.stringify({ jsonrpc: "2.0", id: body.id, error: { code: -32601, message: `Unknown tool: ${name}` } }),
+      { headers, status: 200 }
+    );
   }
-};
+
+  const value = table[keyword as keyof typeof table];
+  const text = value !== undefined
+    ? `${value}`
+    : `'${keyword}'를 찾을 수 없습니다. 등록된 키워드: ${Object.keys(table).join(", ")}`;
+
+  return new Response(
+    JSON.stringify({
+      jsonrpc: "2.0",
+      id: body.id,
+      result: { content: [{ type: "text", text }], isError: value === undefined }
+    }),
+    { headers, status: 200 }
+  );
+}
