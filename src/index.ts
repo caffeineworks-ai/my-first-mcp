@@ -29,9 +29,12 @@ export default {
 
       if (request.method === "POST") {
         const bodyText = await request.text();
-
+        
         if (!bodyText || bodyText.trim() === "") {
-          return new Response(JSON.stringify({ jsonrpc: "2.0", result: {} }), { headers, status: 200 });
+          return new Response(JSON.stringify({ jsonrpc: "2.0", result: {} }), {
+            headers: { ...headers, "mcp-session-id": crypto.randomUUID() },
+            status: 200
+          });
         }
 
         const body = JSON.parse(bodyText);
