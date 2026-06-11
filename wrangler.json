@@ -2,4 +2,13 @@
   "name": "my-first-mcp",
   "main": "src/index.ts",
   "compatibility_date": "2026-06-11"
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true
+    },
+    "traces": {
+      "enabled": false
+    }
+  }
 }
