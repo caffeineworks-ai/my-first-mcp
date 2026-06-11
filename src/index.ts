@@ -94,34 +94,31 @@ export default {
         }
 
         // [Case C] AI가 데이터를 실제로 요청하여 조회할 때
-if (body.method === "tools/call") {
-  const { name, arguments: args } = body.params;
-  const keyword = args?.keyword?.trim();
-
-  const table = name === "get_fillet_r"
-    ? keywords.fillet
-    : name === "get_chamfer_c"
-    ? keywords.chamfer
-    : null;
-
-  if (!table) {
-    return new Response(
-      JSON.stringify({ jsonrpc: "2.0", id: body.id, error: { code: -32601, message: `Unknown tool: ${name}` } }),
-      { headers, status: 200 }
-    );
-  }
-
-  const value = table[keyword as keyof typeof table];
-  const text = value !== undefined
-    ? `${value}`
-    : `'${keyword}'를 찾을 수 없습니다. 등록된 키워드: ${Object.keys(table).join(", ")}`;
-
-  return new Response(
-    JSON.stringify({
-      jsonrpc: "2.0",
-      id: body.id,
-      result: { content: [{ type: "text", text }], isError: value === undefined }
-    }),
-    { headers, status: 200 }
-  );
-}
+        if (body.method === "tools/call") {
+          const { name, arguments: args } = body.params;
+          const keyword = args?.keyword?.trim();
+          const table = name === "get_fillet_r"
+            ? keywords.fillet
+            : name === "get_chamfer_c"
+            ? keywords.chamfer
+            : null;
+          if (!table) {
+            return new Response(
+              JSON.stringify({ jsonrpc: "2.0", id: body.id, error: { code: -32601, message: `Unknown tool: ${name}` } }),
+              { headers, status: 200 }
+            );
+          }
+          const value = table[keyword as keyof typeof table];
+          const text = value !== undefined
+            ? `${value}`
+            : `'${keyword}'를 찾을 수 없습니다. 등록된 키워드: ${Object.keys(table).join(", ")}`;
+          return new Response(
+            JSON.stringify({
+              jsonrpc: "2.0",
+              id: body.id,
+              result: { content: [{ type: "text", text }], isError: value === undefined }
+            }),
+            { headers, status: 200 }
+          );
+        }
+      };   
